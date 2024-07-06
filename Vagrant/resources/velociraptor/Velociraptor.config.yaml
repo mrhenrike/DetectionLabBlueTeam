@@ -1,9 +1,10 @@
 version:
   name: velociraptor
-  version: 0.6.4-2
-  commit: b6c5764a
-  build_time: "2022-05-08T23:09:48+10:00"
-  compiler: go1.18.1
+  version: 0.7.0-2
+  commit: 82f2cad
+  build_time: "2023-09-10T15:23:01Z"
+  ci_build_url: https://github.com/Velocidex/velociraptor/actions/runs/6137985901
+  compiler: go1.21.0
 Client:
   server_urls:
   - https://logger:9000/
@@ -43,10 +44,11 @@ Client:
     install_path: /usr/local/sbin/velociraptor
   version:
     name: velociraptor
-    version: 0.6.4-2
-    commit: b6c5764a
-    build_time: "2022-05-08T23:09:48+10:00"
-    compiler: go1.18.1
+    version: 0.7.0-2
+    commit: 82f2cad
+    build_time: "2023-09-10T15:23:01Z"
+    ci_build_url: https://github.com/Velocidex/velociraptor/actions/runs/6137985901
+    compiler: go1.21.0
   use_self_signed_ssl: true
   pinned_server_name: VelociraptorServer
   max_upload_size: 5242880
