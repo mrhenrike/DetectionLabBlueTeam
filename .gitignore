@@ -2,6 +2,8 @@ Vagrant/.vagrant/*
 Vagrant/vagrant*.log
 Packer/packer_cache/*
 Packer/packer_build.log
+Vagrant/Exchange/scripts/
+Vagrant/Exchange/resources/
 Boxes/*
 .DS_Store
 **/.terraform/*
@@ -22,3 +24,7 @@ Proxmox/Packer/packer_cache/*
 Proxmox/Packer/variables.json
 Proxmox/Packer/downloaded_additional_iso_path_?/*
 variables.json
+
+Vagrant/Exchange/resources/
+
+Vagrant/Exchange/scripts/

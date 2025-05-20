@@ -25,6 +25,20 @@
   able to build DetectionLab.
 #>
 
+Write-Host ''
+Write-Host '[+] Verificando conectividade com a Internet...'
+if (Test-Connection -ComputerName "8.8.8.8" -Count 2 -Quiet) {
+    Write-Host "  [$checkmark] Conectividade verificada." -ForegroundColor Green
+} else {
+    Write-Host "  [!] Sem conexão com a internet. Certifique-se de estar conectado para instalar dependências." -ForegroundColor Red
+    Exit 1
+}
+
+if ($PSVersionTable.PSVersion.Major -lt 4) {
+  Write-Host "  [!] PowerShell 4.0 ou superior é necessário." -ForegroundColor Red
+  Exit 1
+}
+
 $VAGRANT_DIR = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 $checkmark = ([char]8730)
 
@@ -40,9 +54,9 @@ Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, H
       Add-Member -InputObject $obj -MemberType NoteProperty -Name DisplayName -Value $_.GetValue("DisplayName")
       $results += $obj
   }
-  forEach ($result in $results) {
-    if ($result -like "*$Name*") {
-      return $true
+  foreach ($result in $results) {
+    if ($result.DisplayName -like "*$Name*") {
+        return $true
     }
   }
   return $false
@@ -66,7 +80,7 @@ function check_vagrant_path {
   Catch {
     Write-Host '  [!] Vagrant was not found in your PATH. Please correct this before continuing.' -ForegroundColor red
     Write-Host '  [!] Correct this by installing Vagrant with Choco or downloading from https://www.vagrantup.com/downloads.html' -ForegroundColor red
-    Break
+    Exit 1
   }
 
   # Check Vagrant version >= 2.2.9
@@ -108,7 +122,8 @@ function check_vmware_workstation_installed {
 function check_vmware_vagrant_plugin_installed {
   Write-Host ''
   Write-Host '[+] Checking if the vagrant_vmware_desktop plugin is installed...' 
-  if (vagrant plugin list | Select-String 'vagrant-vmware-workstation') {
+  $vagrantPlugins = vagrant plugin list 2>$null
+  if ($vagrantPlugins | Select-String 'vagrant-vmware-workstation') {
     Write-Host '  [!] The vagrant VMware Workstation plugin is no longer supported.' -ForegroundColor red
     Write-Host '  [-] Please upgrade to the VMware Desktop plugin: https://www.vagrantup.com/docs/vmware/installation.html' -ForegroundColor yellow
     Write-Host '  [-] Please also uninstall the vagrant-vmware-fusion plugin and install the vmware-vagrant-desktop plugin' -ForegroundColor yellow
