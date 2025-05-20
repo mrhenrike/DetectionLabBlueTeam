@@ -10,6 +10,7 @@ Boxes/*
 *.tfstate
 *.tfstate.*
 *.tfvars
+.env
 ESXi/Ansible/inventory.yml
 Azure/Ansible/inventory.yml
 inventory.yml.bak
@@ -24,7 +25,3 @@ Proxmox/Packer/packer_cache/*
 Proxmox/Packer/variables.json
 Proxmox/Packer/downloaded_additional_iso_path_?/*
 variables.json
-
-Vagrant/Exchange/resources/
-
-Vagrant/Exchange/scripts/
