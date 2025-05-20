@@ -480,7 +480,7 @@ install_velociraptor() {
   echo "[$(date +%H:%M:%S)]: Cleanup velociraptor package building leftovers..."
   rm -rf /opt/velociraptor/logs
   echo "[$(date +%H:%M:%S)]: Installing the dpkg..."
-  if dpkg -i velociraptor_*_server.deb >/dev/null; then
+  if dpkg -i velociraptor*server*.deb >/dev/null; then
     echo "[$(date +%H:%M:%S)]: Installation complete!"
   else
     echo "[$(date +%H:%M:%S)]: Failed to install the dpkg"
@@ -561,35 +561,76 @@ test_suricata_prerequisites() {
 }
 
 install_guacamole() {
+  set -x
   echo "[$(date +%H:%M:%S)]: Setting up Guacamole..."
-  cd /opt || exit 1
-  echo "[$(date +%H:%M:%S)]: Downloading Guacamole..."
-  wget --progress=bar:force "https://apache.org/dyn/closer.lua/guacamole/1.3.0/source/guacamole-server-1.3.0.tar.gz?action=download" -O guacamole-server-1.3.0.tar.gz
-  tar -xf guacamole-server-1.3.0.tar.gz && cd guacamole-server-1.3.0 || echo "[-] Unable to find the Guacamole folder."
-  echo "[$(date +%H:%M:%S)]: Configuring Guacamole and running 'make' and 'make install'..."
-  ./configure --with-init-dir=/etc/init.d && make --quiet &>/dev/null && make --quiet install &>/dev/null || echo "[-] An error occurred while installing Guacamole."
+
+  # Create the directory if it doesn't exist
+  if [ ! -d "/opt/guacamole" ]; then
+    mkdir /opt/guacamole || echo "Directory already exists"
+  fi
+  cd /opt/guacamole || exit 1
+
+  echo "[$(date +%H:%M:%S)]: Downloading Guacamole server version 1.5.5..."
+  wget --progress=bar:force "https://apache.org/dyn/closer.lua/guacamole/1.5.5/source/guacamole-server-1.5.5.tar.gz?action=download" -O guacamole-server.tar.gz
+
+  if [ $? -ne 0 ]; then
+    echo "[-] Failed to download Guacamole server. Exiting."
+    exit 1
+  fi
+
+  tar -xf guacamole-server.tar.gz && cd "guacamole-server-1.5.5" || { echo "[-] Unable to find the Guacamole folder."; exit 1; }
+
+  echo "[$(date +%H:%M:%S)]: Configuring and installing Guacamole server..."
+  if ./configure --with-init-dir=/etc/init.d --disable-Werror && make --quiet && make --quiet install; then
+    echo "[$(date +%H:%M:%S)]: Guacamole server successfully configured and installed!"
+  else
+    echo "[-] An error occurred while installing Guacamole."
+    exit 1
+  fi
   ldconfig
-  cd /var/lib/tomcat9/webapps || echo "[-] Unable to find the tomcat9/webapps folder."
-  wget --progress=bar:force "https://apache.org/dyn/closer.lua/guacamole/1.3.0/binary/guacamole-1.3.0.war?action=download" -O guacamole.war
-  mkdir /etc/guacamole
-  mkdir /etc/guacamole/shares
-  sudo chmod 777 /etc/guacamole/shares
-  mkdir /usr/share/tomcat9/.guacamole
+
+  cd /var/lib/tomcat9/webapps || { echo "[-] Unable to find the tomcat9/webapps folder."; exit 1; }
+
+  echo "[$(date +%H:%M:%S)]: Downloading Guacamole web application version 1.5.5..."
+  wget --progress=bar:force "https://apache.org/dyn/closer.lua/guacamole/1.5.5/binary/guacamole-1.5.5.war?action=download" -O guacamole.war
+
+  if [ $? -ne 0 ]; then
+    echo "[-] Failed to download Guacamole web application. Exiting."
+    exit 1
+  fi
+
+  mkdir -p /etc/guacamole/shares
+  chmod 777 /etc/guacamole/shares
+  mkdir -p /usr/share/tomcat9/.guacamole
+
+  echo "[$(date +%H:%M:%S)]: Copying configuration files..."
   cp /vagrant/resources/guacamole/user-mapping.xml /etc/guacamole/
   cp /vagrant/resources/guacamole/guacamole.properties /etc/guacamole/
   cp /vagrant/resources/guacamole/guacd.service /lib/systemd/system
-  sudo ln -s /etc/guacamole/guacamole.properties /usr/share/tomcat9/.guacamole/
-  sudo ln -s /etc/guacamole/user-mapping.xml /usr/share/tomcat9/.guacamole/
-  # Thank you Kifarunix: https://kifarunix.com/install-guacamole-on-debian-11/
-  useradd -M -d /var/lib/guacd/ -r -s /sbin/nologin -c "Guacd User" guacd
-  mkdir /var/lib/guacd
+  ln -s /etc/guacamole/guacamole.properties /usr/share/tomcat9/.guacamole/
+  ln -s /etc/guacamole/user-mapping.xml /usr/share/tomcat9/.guacamole/
+
+  echo "[$(date +%H:%M:%S)]: Setting up guacd user..."
+  useradd -M -d /var/lib/guacd/ -r -s /sbin/nologin -c "Guacd User" guacd || echo "Guacd user already exists"
+  mkdir -p /var/lib/guacd
   chown -R guacd: /var/lib/guacd
+
+  echo "[$(date +%H:%M:%S)]: Enabling and starting services..."
   systemctl daemon-reload
   systemctl enable guacd
   systemctl enable tomcat9
   systemctl start guacd
   systemctl start tomcat9
-  echo "[$(date +%H:%M:%S)]: Guacamole installation complete!"
+
+  if systemctl is-active --quiet guacd && systemctl is-active --quiet tomcat9; then
+    echo "[$(date +%H:%M:%S)]: Guacamole installation complete!"
+  else
+    echo "[-] An error occurred while starting services."
+    systemctl status guacd
+    systemctl status tomcat9
+    exit 1
+  fi
+  set +x
 }
 
 configure_splunk_inputs() {
