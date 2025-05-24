@@ -1,10 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-txtcyan='\033[1;36m'
-txtwhite='\033[1;37m'
-reset='\033[0m'
+# Safer color handling
+txtcyan=$(tput setaf 6; tput bold)
+txtwhite=$(tput setaf 7; tput bold)
+reset=$(tput sgr0)
 
-cat << EOM
+cat <<EOM
 ${txtcyan}
  ░▒▓███████▓▒░░▒▓██████▓▒░ ░▒▓██████▓▒░  
 ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░ 
@@ -14,8 +15,7 @@ ${txtcyan}
        ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░ 
 ░▒▓███████▓▒░ ░▒▓██████▓▒░ ░▒▓██████▓▒░  
 ${txtwhite}
-     Detection Laboratory
-        for Blue Teams
+      Detection Laboratory
+         for Blue Teams
 ${reset}
 EOM
-

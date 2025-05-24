@@ -103,3 +103,113 @@ A sizable percentage of this code was borrowed and adapted from [Stefan Scherer]
 #### Last updated: 01/01/2023
 I would like to extend thanks to everyone who sponsored DetectionLab over the past few years. DetectionLab is no longer actively being maintained or developed.
 
+---
+
+# logger_bootstrap.sh
+
+> Script de provisionamento completo do host `logger` no ambiente DetectionLab.
+
+Este script realiza a instalação automatizada e configuração dos principais componentes de um laboratório de segurança cibernética, incluindo Splunk, Zeek, Suricata, Velociraptor, Fleet, Guacamole e dependências adicionais. Ele foi desenvolvido para funcionar em ambientes baseados em **Ubuntu 18.04 até 24.04**, com detecção automática da versão e adaptações específicas.
+
+---
+
+## ✅ Funcionalidades Principais
+
+- Instalação e configuração automatizada de:
+  - **Splunk SIEM** (com apps e inputs)
+  - **Zeek** (via APT ou build manual)
+  - **Suricata** (com `suricata-update`)
+  - **Velociraptor**
+  - **Fleet + OSQuery**
+  - **Apache Guacamole**
+- Correção de rede, DNS e IP estático da interface `eth1`
+- Otimizações para `apt-fast`, `snap`, `netplan` e `systemd`
+- Logs de execução salvos em `/var/log/logger_provision_report.log`
+- Healthcheck com resumo final dos módulos OK, warnings e erros
+
+---
+
+## 📦 Módulos Disponíveis
+
+Você pode executar o script em **modo completo** ou utilizar **modos específicos** conforme necessidade:
+
+| Modo               | Descrição                                             |
+|--------------------|-------------------------------------------------------|
+| `main`             | Executa o provisionamento completo do logger         |
+| `splunk_only`      | Instala apenas o Splunk e configura inputs           |
+| `velociraptor_only`| Instala apenas o Velociraptor                        |
+| `guacamole_only`   | Instala apenas o Guacamole                           |
+| `suricata_only`    | Instala apenas o Suricata                            |
+| `zeek_only`        | Instala apenas o Zeek                                |
+| `fleet_only`       | Instala apenas o Fleet (com configs do OSQuery)      |
+| `fix_dns_only`     | Corrige DNS e configura `/etc/resolv.conf`           |
+| `cleanup_system`   | Executa limpeza final do sistema                     |
+
+---
+
+## 🚀 Como Utilizar
+
+```bash
+# Executar o script completo
+sudo ./logger_bootstrap.sh
+
+# Executar um modo específico (exemplo: apenas instalar Zeek)
+sudo ./logger_bootstrap.sh zeek_only
+```
+
+---
+
+## 📝 Requisitos
+
+- Sistema operacional: **Ubuntu 18.04, 20.04, 22.04 ou 24.04**
+- Acesso como **root** ou com **sudo**
+- Dependências básicas são gerenciadas automaticamente pelo script
+- Rede NAT configurada corretamente com IP estático 192.168.56.105 (para Vagrant)
+
+---
+
+## 📁 Estrutura esperada
+
+O script espera que o ambiente possua os seguintes recursos disponíveis:
+
+- `/vagrant/resources/` com arquivos auxiliares:
+  - Splunk apps, configs (`props.conf`, `transforms.conf`, etc.)
+  - Certificados e configurações do Fleet
+  - Configurações de Guacamole
+  - Serviço systemd para Zeek
+
+---
+
+## 📋 Log de Execução
+
+Todos os eventos são registrados em:
+
+```
+/var/log/logger_provision_report.log
+```
+
+E o relatório final de healthcheck indica:
+
+- ✅ Sucessos
+- ⚠️ Warnings
+- ❌ Falhas
+- 🛠️ Sugestões de correção manual
+
+---
+
+## 🧩 Contribuição e Extensões
+
+Se quiser adicionar novos módulos ou expandir funcionalidades, adicione uma nova função e inclua-a na lista `MODULES` ou nos `ALLOWED_MODES`. Siga o padrão dos módulos existentes para manter a consistência e modularidade.
+
+---
+
+## 🧠 Observações
+
+- O script é **idempotente**: ele verifica o status de cada componente antes de tentar instalar.
+- Ideal para automação com **Vagrant**, **VirtualBox**, **VMware** ou ambientes internos.
+- Pode ser adaptado para cloud (AWS, GCP, Azure) com ajustes nos handlers de IP e rede.
+
+---
+
+**Autor:** [Seu Nome ou GitHub]  
+**Projeto:** SOC Detection Lab - Logger Provisioning
